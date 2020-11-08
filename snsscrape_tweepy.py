@@ -9,6 +9,7 @@ from tweepy import RateLimitError, TweepError
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
+#get twitter app data saved in a json file
 twitter_auth_data = open("twitter_auth_data").read()
 twitter_auth_data_json = json.loads(twitter_auth_data)
 
@@ -67,7 +68,8 @@ def snscrape_ids(keywords_list, since, until):
 
     return joined_txt_no_dupl_2
 
-
+# send request to twitter using tweepy (input: batch of 50 ids, output: for each ids a tweet containing:
+# {id, username, text, date, location, keyword} )
 def twitter_api_caller(keywords_list, ids, batch_size, save_dir, csv_name):
     try:
         os.chdir(os.path.join(ROOT_DIR, "scraped_tweet"))
@@ -108,12 +110,11 @@ def twitter_api_caller(keywords_list, ids, batch_size, save_dir, csv_name):
         tweets_batch = []
         for status in list_of_tw_status:
             try:
-                tweet = {}
-                tweet["id"] = status.id
-                tweet["username"] = status.user.screen_name
-                tweet["comment"] = status.full_text
-                tweet["date"] = str(status.created_at)
-                tweet["location"] = status.user.location
+                tweet = {"id": status.id,
+                         "username": status.user.screen_name,
+                         "text": status.full_text,
+                         "date": str(status.created_at),
+                         "location": status.user.location}
 
                 kl1 = [e for e in keywords_list if e.lower() in status.full_text.lower()]
                 kl2 = [e for e in keywords_list if e.lower() in status.user.screen_name.lower()]
@@ -153,6 +154,7 @@ if __name__ == '__main__':
     batch_size = 50  # reccomended batch size
     csv_name = 'tweet_'
 
+    #load txt file containg a list of keywords
     keywords_list = open("keyword_lists/keyword_elections.txt", mode='r', encoding='utf-8').read().splitlines()
 
     fetch_tweets(keywords_list, since, until, batch_size, csv_name)
