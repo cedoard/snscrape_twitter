@@ -19,7 +19,7 @@ def save_to_csv(list_to_save, save_dir, csv_name, par=True):
 
 
 def merge_txt_files_scraped(dir_name):
-    os.chdir(os.path.join(ROOT_DIR, "scraped_tweet", dir_name))
+    
     read_files = glob.glob("*.txt")
 
     joined_txt = [open(f, "r").readlines() for f in read_files if not f.startswith("tweets_ids")]
