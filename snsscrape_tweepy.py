@@ -126,23 +126,24 @@ def twitter_api_caller(keywords_list, ids, batch_size, save_dir, csv_name):
     save_to_csv(tweets, save_dir, csv_name)
 
 
-def fetch_tweets(keywords_list, since, until, batch_size, csv_name):
+def fetch_tweets(keywords_list, since, until, batch_size, save_dir, csv_name):
     users_and_ids = snscrape_ids(keywords_list, since, until)
     ids = list(map(lambda x: x.split(" ")[1], users_and_ids))
 
-    twitter_api_caller(ids, batch_size, csv_name)
+    twitter_api_caller(ids, batch_size, save_dir, csv_name)
 
 
 if __name__ == '__main__':
     since = '2019-01-01'
     until = '2019-12-31'
     batch_size = 50  # recommended batch size
+    save_dir = "final_tweet_csv"
     csv_name = 'tweets_2019'
 
     #load txt file containg a list of keywords
     keywords_list = open("keyword_lists/keyword_elections.txt", mode='r', encoding='utf-8').read().splitlines()
 
-    fetch_tweets(keywords_list, since, until, batch_size, csv_name)
+    fetch_tweets(keywords_list, since, until, batch_size, save_dir, csv_name)
 
     ## use this if you need to fetch tweet using ids
     # file_ids = '20200101_20201029'

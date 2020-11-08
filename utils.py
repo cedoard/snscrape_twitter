@@ -6,13 +6,15 @@ from itertools import chain
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def save_to_csv(tweets, csv_name):
-    tweets_final = list(chain.from_iterable(tweets))
-    os.chdir(os.path.join(ROOT_DIR, "scraped_tweet", "final_tweet_csv"))
-    with open(f'{csv_name}.csv', 'w',
-              encoding='utf-8') as outfile:
-        json.dump(tweets_final, outfile, indent=4, sort_keys=True, ensure_ascii=False)
-        print(f"Scraped {len(tweets_final)} tweets | File '{csv_name}' csv saved successfully.")
+def save_to_csv(list_to_save, save_dir, csv_name, par=True):
+    if par:
+        list_to_save = list(chain.from_iterable(list_to_save))
+
+    os.chdir(os.path.join(ROOT_DIR, save_dir))
+
+    with open(f'{csv_name}_len_{len(list_to_save)}.csv', 'w', encoding='utf-8') as outfile:
+        json.dump(list_to_save, outfile, indent=4, sort_keys=True, ensure_ascii=False)
+        print(f"Scraped {len(list_to_save)} comments | File '{csv_name}' csv saved successfully.")
 
 
 def merge_txt_files_scraped(dir_name):
