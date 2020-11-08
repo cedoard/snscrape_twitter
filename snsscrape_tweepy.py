@@ -1,17 +1,15 @@
 import os
-import glob
-from itertools import chain
 import json
 import time
 
 import tweepy
-from tweepy import RateLimitError, TweepError
+from tweepy import RateLimitError
 
 from utils import save_to_csv, merge_txt_files_scraped
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-#get twitter app data saved in a json file
+# get twitter app data saved in a json file
 twitter_auth_data = open("twitter_auth_data").read()
 twitter_auth_data_json = json.loads(twitter_auth_data)
 
@@ -26,6 +24,8 @@ api = tweepy.API(auth)
 
 
 def snscrape_ids(keywords_list, since, until):
+    dir_name = f"{since.replace('-', '')}_{until.replace('-', '')}"
+
     try:
         os.mkdir("scraped_tweet")
     except FileExistsError:
@@ -33,8 +33,6 @@ def snscrape_ids(keywords_list, since, until):
 
     try:
         os.chdir(os.path.join(ROOT_DIR, "scraped_tweet"))
-
-        dir_name = f"{since.replace('-', '')}_{until.replace('-', '')}"
         os.mkdir(dir_name)
         print("Directory", dir_name, "Created ")
     except FileExistsError:
@@ -61,6 +59,7 @@ def snscrape_ids(keywords_list, since, until):
         print(f"raw file saved in folder {dir_name}")
 
     return joined_txt_no_duplicate
+
 
 # send request to twitter using tweepy (input: batch of 50 ids, output: for each ids a tweet containing:
 # {id, username, text, date, location, keyword} )
@@ -140,7 +139,7 @@ if __name__ == '__main__':
     save_dir = "final_tweet_csv"
     csv_name = 'tweets_2019'
 
-    #load txt file containg a list of keywords
+    # load txt file containg a list of keywords
     keywords_list = open("keyword_lists/keyword_elections.txt", mode='r', encoding='utf-8').read().splitlines()
 
     fetch_tweets(keywords_list, since, until, batch_size, save_dir, csv_name)
