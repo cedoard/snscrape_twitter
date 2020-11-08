@@ -21,12 +21,9 @@ def save_to_csv(list_to_save, save_dir, csv_name, par=True):
 def merge_txt_files_scraped(dir_name):
     
     read_files = glob.glob("*.txt")
-
     joined_txt = [open(f, "r").readlines() for f in read_files if not f.startswith("tweets_ids")]
-
     joined_txt_no_duplicate_url = list(set(list(chain.from_iterable(joined_txt))))
+    
     print(f"Deleted {len(list(chain.from_iterable(joined_txt))) - len(joined_txt_no_duplicate_url)} duplicated tweets")
-
-    joined_txt_no_duplicate = [str(j.split('/')[3] + " " + j.split('/')[-1]) for j in joined_txt_no_duplicate_url]
-
-    return joined_txt_no_duplicate
+    
+    return [str(j.split('/')[3] + " " + j.split('/')[-1]) for j in joined_txt_no_duplicate_url]
