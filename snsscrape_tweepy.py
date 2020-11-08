@@ -52,13 +52,11 @@ def snscrape_ids(keywords_list, since, until, lang):
     print(f'Scraped all tweets in keywords list.')
 
     # merge all txt files in a folder in a single txt file and delete duplicated ids
-    os.chdir(os.path.join(ROOT_DIR, "scraped_tweet", dir_name))
-    
-    joined_txt_no_duplicate = merge_txt_files_scraped(dir_name)
+    joined_txt_no_duplicate = merge_txt_files_scraped(os.path.join("scraped_tweet", dir_name))
 
     with open(f"tweets_ids_{dir_name}.txt", "w") as outfile:
         outfile.writelines(joined_txt_no_duplicate)
-        print(f"raw file saved in folder {dir_name}")
+        print(f"'tweets_ids_{dir_name}.txt' saved in folder {dir_name}")
 
     return joined_txt_no_duplicate
 
@@ -96,10 +94,10 @@ def twitter_api_caller(keywords_list, ids, batch_size, save_dir, csv_name):
         except RateLimitError as err:
             print('Tweepy: Rate Limit exceeded')
             # https://developer.twitter.com/en/docs/twitter-api/v1/tweets/timelines/faq
-            save_to_csv(tweets, save_dir, f"{csv_name}_last_batch_{i}")
+            save_to_csv(tweets, os.path.join("scraped_tweet", save_dir), f"{csv_name}_last_batch_{i}")
             break
         except Exception as err:
-            save_to_csv(tweets, save_dir, f"{csv_name}_last_batch_{i}")
+            save_to_csv(tweets, os.path.join("scraped_tweet", save_dir), f"{csv_name}_last_batch_{i}")
             print(f"General Error: {str(err)}")
             break
 
@@ -123,13 +121,13 @@ def twitter_api_caller(keywords_list, ids, batch_size, save_dir, csv_name):
             tweets_batch.append(tweet)
 
         if len(tweets_batch) == 0:
-            save_to_csv(tweets, save_dir, f"{csv_name}_last_batch_{i}")
+            save_to_csv(tweets, os.path.join("scraped_tweet", save_dir), f"{csv_name}_last_batch_{i}")
             print("No tweets scraped")
             break
 
         tweets.append(tweets_batch)
 
-    save_to_csv(tweets, save_dir, csv_name)
+    save_to_csv(tweets, os.path.join("scraped_tweet", save_dir), csv_name)
 
 
 def fetch_tweets(keywords_list, since, until, lang, batch_size, save_dir, csv_name):
