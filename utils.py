@@ -10,7 +10,8 @@ def save_to_csv(list_to_save, save_dir, csv_name, par=True):
     if par:
         list_to_save = list(chain.from_iterable(list_to_save))
 
-    os.chdir(os.path.join(ROOT_DIR, save_dir))
+    save_dir = os.path.join(ROOT_DIR, "scraped_tweet", save_dir)
+    os.chdir(save_dir)
 
     with open(f'{csv_name}_len_{len(list_to_save)}.csv', 'w', encoding='utf-8') as outfile:
         json.dump(list_to_save, outfile, indent=4, sort_keys=True, ensure_ascii=False)
