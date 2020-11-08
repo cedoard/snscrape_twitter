@@ -7,6 +7,8 @@ import time
 import tweepy
 from tweepy import RateLimitError, TweepError
 
+from utils import save_to_csv, merge_txt_files_scraped
+
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 #get twitter app data saved in a json file
@@ -52,21 +54,13 @@ def snscrape_ids(keywords_list, since, until):
     print(f'Scraped all tweets in keywords list.')
 
     # merge all txt files in single txt file and delete duplicated ids
-    os.chdir(os.path.join(ROOT_DIR, "scraped_tweet", dir_name))
-    read_files = glob.glob("*.txt")
-
-    joined_txt = [open(f, "r").readlines() for f in read_files if not f.startswith("tweets_ids")]
-
-    joined_txt_no_dupl = list(set(list(chain.from_iterable(joined_txt))))
-    print(f"Deleted {len(list(chain.from_iterable(joined_txt))) - len(joined_txt_no_dupl)} duplicated tweets")
-
-    joined_txt_no_dupl_2 = [str(j.split('/')[3] + " " + j.split('/')[-1]) for j in joined_txt_no_dupl]
+    joined_txt_no_duplicate = merge_txt_files_scraped(dir_name)
 
     with open(f"tweets_ids_{dir_name}.txt", "w") as outfile:
-        outfile.writelines(joined_txt_no_dupl_2)
+        outfile.writelines(joined_txt_no_duplicate)
         print(f"raw file saved in folder {dir_name}")
 
-    return joined_txt_no_dupl_2
+    return joined_txt_no_duplicate
 
 # send request to twitter using tweepy (input: batch of 50 ids, output: for each ids a tweet containing:
 # {id, username, text, date, location, keyword} )
@@ -132,15 +126,6 @@ def twitter_api_caller(keywords_list, ids, batch_size, save_dir, csv_name):
     save_to_csv(tweets, save_dir, csv_name)
 
 
-def save_to_csv(tweets, csv_name):
-    tweets_final = list(chain.from_iterable(tweets))
-    os.chdir(os.path.join(ROOT_DIR, "scraped_tweet", "final_tweet_csv"))
-    with open(f'{csv_name}.csv', 'w',
-              encoding='utf-8') as outfile:
-        json.dump(tweets_final, outfile, indent=4, sort_keys=True, ensure_ascii=False)
-        print(f"Scraped {len(tweets_final)} tweets | File '{csv_name}' csv saved successfully.")
-
-
 def fetch_tweets(keywords_list, since, until, batch_size, csv_name):
     users_and_ids = snscrape_ids(keywords_list, since, until)
     ids = list(map(lambda x: x.split(" ")[1], users_and_ids))
@@ -151,8 +136,8 @@ def fetch_tweets(keywords_list, since, until, batch_size, csv_name):
 if __name__ == '__main__':
     since = '2019-01-01'
     until = '2019-12-31'
-    batch_size = 50  # reccomended batch size
-    csv_name = 'tweet_'
+    batch_size = 50  # recommended batch size
+    csv_name = 'tweets_2019'
 
     #load txt file containg a list of keywords
     keywords_list = open("keyword_lists/keyword_elections.txt", mode='r', encoding='utf-8').read().splitlines()
