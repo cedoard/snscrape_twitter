@@ -51,7 +51,9 @@ def snscrape_ids(keywords_list, since, until, lang):
 
     print(f'Scraped all tweets in keywords list.')
 
-    # merge all txt files in single txt file and delete duplicated ids
+    # merge all txt files in a folder in a single txt file and delete duplicated ids
+    os.chdir(os.path.join(ROOT_DIR, "scraped_tweet", dir_name))
+    
     joined_txt_no_duplicate = merge_txt_files_scraped(dir_name)
 
     with open(f"tweets_ids_{dir_name}.txt", "w") as outfile:
