@@ -1,4 +1,4 @@
-Using snscrape and tweepy libraries to scrape unlimited amount of tweets
+Using snscrape and tweepy libraries to scrape unlimited amount of tweets and save them to csv.
 
 credits:
 https://github.com/JustAnotherArchivist/snscrape
