@@ -3,9 +3,9 @@ import os
 from snsscrape_tweepy import fetch_tweets, twitter_api_caller
 
 if __name__ == '__main__':
-    since = '2019-11-26'
-    until = '2019-11-30'
-    lang = 'it'
+    since = '2019-10-28'
+    until = '2019-10-30'
+    lang = 'en'
     batch_size = 50  # recommended batch size
     save_dir = "final_tweet_csv" # final saving subdir located in scraped_tweet
     csv_name = 'tweets_2019'

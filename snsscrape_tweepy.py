@@ -64,6 +64,9 @@ def snscrape_ids(keywords_list, since, until, lang):
 # send request to twitter using tweepy (input: batch of 50 ids, output: for each ids a tweet containing:
 # {id, username, text, date, location, keyword} )
 def twitter_api_caller(keywords_list, ids, batch_size, save_dir, csv_name):
+
+    csv_columns = ['id', 'username', 'text', 'keywords', 'date', 'location']
+
     try:
         os.chdir(os.path.join(ROOT_DIR, "scraped_tweet"))
         os.mkdir(save_dir)
@@ -94,10 +97,10 @@ def twitter_api_caller(keywords_list, ids, batch_size, save_dir, csv_name):
         except RateLimitError as err:
             print('Tweepy: Rate Limit exceeded')
             # https://developer.twitter.com/en/docs/twitter-api/v1/tweets/timelines/faq
-            save_to_csv(tweets, os.path.join("scraped_tweet", save_dir), f"{csv_name}_last_batch_{i}")
+            save_to_csv(tweets, os.path.join("scraped_tweet", save_dir), f"{csv_name}_last_batch_{i}", csv_columns)
             break
         except Exception as err:
-            save_to_csv(tweets, os.path.join("scraped_tweet", save_dir), f"{csv_name}_last_batch_{i}")
+            save_to_csv(tweets, os.path.join("scraped_tweet", save_dir), f"{csv_name}_last_batch_{i}", csv_columns)
             print(f"General Error: {str(err)}")
             break
 
@@ -121,13 +124,13 @@ def twitter_api_caller(keywords_list, ids, batch_size, save_dir, csv_name):
             tweets_batch.append(tweet)
 
         if len(tweets_batch) == 0:
-            save_to_csv(tweets, os.path.join("scraped_tweet", save_dir), f"{csv_name}_last_batch_{i}")
+            save_to_csv(tweets, os.path.join("scraped_tweet", save_dir), f"{csv_name}_last_batch_{i}", csv_columns)
             print("No tweets scraped")
             break
 
         tweets.append(tweets_batch)
 
-    save_to_csv(tweets, os.path.join("scraped_tweet", save_dir), csv_name)
+    save_to_csv(tweets, os.path.join("scraped_tweet", save_dir), csv_name, csv_columns)
 
 
 def fetch_tweets(keywords_list, since, until, lang, batch_size, save_dir, csv_name):
