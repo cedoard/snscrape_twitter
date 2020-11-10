@@ -3,3 +3,4 @@ twitter_auth_data.json
 /Lib/
 /pyvenv.cfg
 /Include/
+/scraped_tweet/
