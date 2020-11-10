@@ -1,1 +1,5 @@
 twitter_auth_data.json
+/Scripts/
+/Lib/
+/pyvenv.cfg
+/Include/
