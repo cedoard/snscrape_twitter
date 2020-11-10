@@ -17,7 +17,7 @@ def save_to_csv(list_to_save, save_dir, csv_name, csv_columns, par=True):
             writer.writeheader()
             for data in list_to_save:
                 writer.writerow(data)
-            print(f"Scraped {len(list_to_save)} comments | File '{csv_name}' csv saved successfully.")
+            print(f"Scraped a total of {len(list_to_save)} tweets | File '{csv_name}' csv saved successfully.")
     except IOError:
         print("I/O error")
 
