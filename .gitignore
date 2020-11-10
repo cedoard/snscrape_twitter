@@ -4,3 +4,4 @@ twitter_auth_data.json
 /pyvenv.cfg
 /Include/
 /scraped_tweet/
+/.idea/
