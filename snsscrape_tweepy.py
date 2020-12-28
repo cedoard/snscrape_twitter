@@ -5,9 +5,7 @@ import time
 import tweepy
 from tweepy import RateLimitError
 
-from utils import save_to_csv, merge_txt_files_scraped
-
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+from utils import save_to_csv, merge_txt_files_scraped, ROOT_DIR, SCRAPED_TWEET_PATH
 
 # get twitter app data saved in a json file
 twitter_auth_data = open("twitter_auth_data.json").read()
@@ -32,7 +30,7 @@ def snscrape_ids(keyword_user_search_param, keywords_users_list, since, until, l
         print("Directory 'scraped_tweet' already exists")
 
     try:
-        os.chdir(os.path.join(ROOT_DIR, "scraped_tweet"))
+        os.chdir(SCRAPED_TWEET_PATH)
         os.mkdir(dir_name)
         print("Directory", dir_name, "Created ")
     except FileExistsError:
@@ -52,7 +50,7 @@ def snscrape_ids(keyword_user_search_param, keywords_users_list, since, until, l
     print(f'Scraped all tweets in keywords list.')
 
     # merge all txt files in a folder in a single txt file and delete duplicated ids
-    joined_txt_no_duplicate = merge_txt_files_scraped(os.path.join("scraped_tweet", dir_name))
+    joined_txt_no_duplicate = merge_txt_files_scraped(dir_name)
 
     with open(f"tweets_ids_{dir_name}.txt", "w") as outfile:
         outfile.writelines(joined_txt_no_duplicate)
@@ -71,7 +69,7 @@ def twitter_api_caller(keyword_user_search_param, keywords_list, ids, batch_size
         csv_columns = ['id', 'username', 'text', 'date', 'location']
 
     try:
-        os.chdir(os.path.join(ROOT_DIR, "scraped_tweet"))
+        os.chdir(SCRAPED_TWEET_PATH)
         os.mkdir(save_dir)
 
         print("Directory 'final_tweet_csv' Created")
@@ -99,10 +97,10 @@ def twitter_api_caller(keyword_user_search_param, keywords_list, ids, batch_size
         except RateLimitError as err:
             print('Tweepy: Rate Limit exceeded')
             # https://developer.twitter.com/en/docs/twitter-api/v1/tweets/timelines/faq
-            save_to_csv(tweets, os.path.join("scraped_tweet", save_dir), f"{csv_name}_last_batch_{i}", csv_columns)
+            save_to_csv(tweets, save_dir, f"{csv_name}_last_batch_{i}", csv_columns)
             break
         except Exception as err:
-            save_to_csv(tweets, os.path.join("scraped_tweet", save_dir), f"{csv_name}_last_batch_{i}", csv_columns)
+            save_to_csv(tweets, save_dir, f"{csv_name}_last_batch_{i}", csv_columns)
             print(f"General Error: {str(err)}")
             break
 
@@ -127,14 +125,14 @@ def twitter_api_caller(keyword_user_search_param, keywords_list, ids, batch_size
             tweets_batch.append(tweet)
         print(f"Processed - scraped {len(tweets_batch)} tweets.")
         if len(tweets_batch) == 0:
-            save_to_csv(tweets, os.path.join("scraped_tweet", save_dir), f"{csv_name}_last_batch_{i}", csv_columns)
+            save_to_csv(tweets, save_dir, f"{csv_name}_last_batch_{i}", csv_columns)
             print("No tweets scraped")
             break
 
         i += 1
         tweets.append(tweets_batch)
 
-    save_to_csv(tweets, os.path.join("scraped_tweet", save_dir), csv_name, csv_columns)
+    save_to_csv(tweets, save_dir, csv_name, csv_columns)
 
 
 def fetch_tweets(keyword_user_search_param, keywords_users_list, since, until, lang, batch_size, save_dir, csv_name):
