@@ -111,7 +111,7 @@ def twitter_api_caller(keyword_user_search_param, keywords_list, ids, batch_size
             try:
                 tweet = {"id": status.id,
                          "username": status.user.screen_name,
-                         "text": status.full_text,
+                         "text": status.full_text.replace('\n', ' '),
                          "date": str(status.created_at),
                          "location": status.user.location}
 
