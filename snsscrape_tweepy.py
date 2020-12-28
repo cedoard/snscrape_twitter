@@ -43,7 +43,8 @@ def snscrape_ids(keyword_user_search_param, keywords_users_list, since, until, l
 
             print(f'scraping tweets with keyword: "{keyword}" ...')
             try:
-                os.system(f'snscrape twitter-{keyword_user_search_param} "{keyword} since:{since} until:{until} lang:{lang}" > {output_path}')
+                os.system(
+                    f'snscrape twitter-{keyword_user_search_param} "{keyword} since:{since} until:{until} lang:{lang}" > {output_path}')
             except Exception as err:
                 print(f"SNSCRAPE ERROR: {err}")
 
@@ -62,7 +63,6 @@ def snscrape_ids(keyword_user_search_param, keywords_users_list, since, until, l
 # send request to twitter using tweepy (input: batch of 50 ids, output: for each ids a tweet containing:
 # {id, username, text, date, location, keyword} )
 def twitter_api_caller(keyword_user_search_param, keywords_list, ids, batch_size, save_dir, csv_name):
-
     if keyword_user_search_param == 'search':
         csv_columns = ['id', 'username', 'text', 'keywords', 'date', 'location']
     else:
@@ -86,12 +86,12 @@ def twitter_api_caller(keyword_user_search_param, keywords_list, ids, batch_size
             # if batch number exceed 300 request could fail
             time.sleep(60)
 
-        if i != n_chunks-1:
+        if i != n_chunks - 1:
             batch = ids[i * batch_size:(i + 1) * batch_size]
         else:
             batch = ids[i * batch_size:]
 
-        print(f"Processing batch n° {i+1}/{n_chunks} ...")
+        print(f"Processing batch n° {i + 1}/{n_chunks} ...")
         try:
             list_of_tw_status = api.statuses_lookup(batch, tweet_mode="extended")
         except RateLimitError as err:
@@ -114,10 +114,10 @@ def twitter_api_caller(keyword_user_search_param, keywords_list, ids, batch_size
                          "location": status.user.location}
 
                 if keyword_user_search_param == 'search':
-                    kl1 = [e for e in keywords_list if e.lower() in status.full_text.lower()]
-                    kl2 = [e for e in keywords_list if e.lower() in status.user.screen_name.lower()]
-                    keywords = [x for x in set(kl1 + kl2) if len(x) > 0]
-                    tweet["keywords"] = keywords
+
+                    keywords_in_tweet = get_tweet_keywords(keywords_list, status)
+
+                    tweet["keywords"] = list(set(keywords_in_tweet))
 
             except Exception as err:
                 print(f"General Error: {str(err)}")
@@ -133,6 +133,24 @@ def twitter_api_caller(keyword_user_search_param, keywords_list, ids, batch_size
         tweets.append(tweets_batch)
 
     save_to_csv(tweets, save_dir, csv_name, csv_columns)
+
+
+def get_tweet_keywords(keywords_list, status):
+    keywords_tweet = []
+    for keyword in keywords_list:
+        if len(keyword.split()) == 1:
+            if keyword.lower() in status.full_text.lower() or keyword.lower() in status.user.screen_name.lower():
+                keywords_tweet.append(keyword)
+        elif len(keyword.split()) > 1:
+            boolean_parameter = []
+            for word in keyword.split():
+                is_present = word.lower() in status.full_text.lower()
+                boolean_parameter.append(is_present)
+            if all(boolean_parameter):
+                keywords_tweet.append(keyword)
+        else:
+            continue
+    return list(set(keywords_tweet))
 
 
 def fetch_tweets(keyword_user_search_param, keywords_users_list, since, until, lang, batch_size, save_dir, csv_name):
