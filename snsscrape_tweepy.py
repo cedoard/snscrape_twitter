@@ -1,7 +1,8 @@
 import os
 import json
 import time
-
+from itertools import chain
+import snscrape.modules.twitter as sntwitter
 import tweepy
 from tweepy import RateLimitError
 
@@ -62,11 +63,14 @@ def snscrape_ids(keyword_user_search_param, keywords_users_list, since, until, l
 
 # send request to twitter using tweepy (input: batch of 50 ids, output: for each ids a tweet containing:
 # {id, username, text, date, location, keyword} )
-def twitter_api_caller(keyword_user_search_param, keywords_list, ids, batch_size, save_dir, csv_name):
+def twitter_api_caller(keyword_user_search_param, keywords_list, ids, batch_size, save_dir, csv_name, collect_replies):
     if keyword_user_search_param == 'search':
         csv_columns = ['id', 'username', 'text', 'keywords', 'date', 'location']
     else:
         csv_columns = ['id', 'username', 'text', 'date', 'location']
+
+    if collect_replies:
+        csv_columns.append('replies')
 
     try:
         os.chdir(SCRAPED_TWEET_PATH)
@@ -114,10 +118,13 @@ def twitter_api_caller(keyword_user_search_param, keywords_list, ids, batch_size
                          "location": status.user.location}
 
                 if keyword_user_search_param == 'search':
-
                     keywords_in_tweet = get_tweet_keywords(keywords_list, status)
 
                     tweet["keywords"] = list(set(keywords_in_tweet))
+
+                if collect_replies:
+                    replies = collect_tweet_replies(status.id, max_num_replies=100)
+                    tweet['replies'] = replies
 
             except Exception as err:
                 print(f"General Error: {str(err)}")
@@ -153,7 +160,59 @@ def get_tweet_keywords(keywords_list, status):
     return list(set(keywords_tweet))
 
 
-def fetch_tweets(keyword_user_search_param, keywords_users_list, since, until, lang, batch_size, save_dir, csv_name):
+def collect_tweet_replies(tweet_id, max_num_replies):
+    replies_ids = []
+
+    for reply in sntwitter.TwitterSearchScraper(
+            query=f"conversation_id:{tweet_id} (filter:safe OR -filter:safe)").get_items():
+        replies_ids.append(reply.id)
+
+    batch_size_replies = 50
+    n_chunks_repl = int((len(replies_ids) - 1) // batch_size_replies + 1)
+
+    replies = []
+    i = 0
+    while i < n_chunks_repl:
+
+        if i > 0 and i % 300 == 0:
+            # if batch number exceed 300 request could fail
+            time.sleep(60)
+
+        if max_num_replies <= i*batch_size_replies:
+            # if too many replies
+            break
+
+        if i != n_chunks_repl - 1:
+            batch = replies_ids[i * batch_size_replies:(i + 1) * batch_size_replies]
+        else:
+            batch = replies_ids[i * batch_size_replies:]
+
+        print(f"Processing REPLIES batch n° {i + 1}/{n_chunks_repl} ...")
+        try:
+            list_of_tw_status_reply = api.statuses_lookup(batch, tweet_mode="extended")
+        except:
+            break
+
+        replies_batch = []
+        for status_reply in list_of_tw_status_reply:
+            # print(status_reply)
+            if hasattr(status_reply, 'full_text'):
+                reply = {
+                    "id": status_reply.id,
+                    "username": status_reply.user.screen_name,
+                    "text": status_reply.full_text.replace('\n', ' ')
+                }
+                # print(reply)
+                replies_batch.append(reply)
+        i += 1
+        replies.append(replies_batch)
+
+    return list(chain.from_iterable(replies))
+
+
+def fetch_tweets(keyword_user_search_param, keywords_users_list, since, until, lang, batch_size, save_dir, csv_name,
+                 collect_replies):
     users_and_ids = snscrape_ids(keyword_user_search_param, keywords_users_list, since, until, lang)
     ids = list(map(lambda x: x.split(" ")[1].strip('\n'), users_and_ids))
-    twitter_api_caller(keyword_user_search_param, keywords_users_list, ids, batch_size, save_dir, csv_name)
+    twitter_api_caller(keyword_user_search_param, keywords_users_list, ids, batch_size, save_dir, csv_name,
+                       collect_replies)
